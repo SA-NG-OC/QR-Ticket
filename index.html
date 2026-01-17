@@ -425,70 +425,44 @@
         });
 
         // HÀM NÀY LÀ QUAN TRỌNG NHẤT - MAPPING DỮ LIỆU
+        // Thay thế hàm renderTicketData cũ bằng hàm này
         function renderTicketData(data) {
             const fmtMoney = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
 
-            // Hàm format ngày từ YYYY-MM-DD sang DD/MM/YYYY
-            const fmtDate = (dateStr) => {
-                if (!dateStr) return '';
-                const parts = dateStr.split('-');
-                return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
-            };
+            // Mapping dữ liệu từ các biến viết tắt (Minified)
+            setText('t-code', data.c);     // c = Code
+            setText('p-name', data.n);     // n = Name
+            setText('route-from', data.f); // f = From
+            setText('route-to', data.t);   // t = To
+            setText('dep-date', data.d);   // d = Date (có thể cần format lại nếu BE trả về YYYY-MM-DD)
+            setText('seat-no', data.s);    // s = Seat
+            setText('price', fmtMoney(data.p)); // p = Price
+            setText('veh-info', `Xe ${data.v}`); // v = Biển số
 
-            // 1. Tách Tuyến đường (routeName: "A -> B")
-            // Backend trả về: "Bến xe Miền Đông → Bến xe Liên Tỉnh Đà Lạt"
-            let fromLoc = data.pickupInfo.locationName; // Mặc định lấy điểm đón nếu ko tách được
-            let toLoc = data.dropoffInfo.locationName;
+            // Pickup
+            setText('pu-time', data.pt);
+            setText('pu-loc', data.pl);
 
-            if (data.tripInfo.routeName && data.tripInfo.routeName.includes('→')) {
-                const parts = data.tripInfo.routeName.split('→');
-                fromLoc = parts[0].trim();
-                toLoc = parts[1].trim();
-            }
+            // Dropoff
+            setText('do-time', data.dt);
+            setText('do-loc', data.dl);
 
-            setText('route-from', fromLoc);
-            setText('route-to', toLoc);
-
-            // 2. Thông tin chính (Lấy từ passengerInfo, ticketInfo, tripInfo)
-            setText('p-name', data.passengerInfo.fullName);
-            setText('t-code', data.ticketInfo.ticketCode);
-            setText('dep-date', fmtDate(data.tripInfo.departureDate));
-            setText('seat-no', data.seatInfo.seatNumber);
-
-            // 3. Pickup (Điểm đón)
-            setText('pu-time', data.pickupInfo.time);
-            setText('pu-loc', data.pickupInfo.locationName);
-            setText('pu-addr', data.pickupInfo.address || '');
-
-            // 4. Dropoff (Điểm trả)
-            setText('do-time', data.dropoffInfo.time);
-            setText('do-loc', data.dropoffInfo.locationName);
-            setText('do-addr', data.dropoffInfo.address || '');
-
-            // 5. Xe (Cắt bớt chữ "Phòng/Seats" nếu quá dài nếu muốn)
-            setText('veh-info', `${data.tripInfo.vehicleType} • ${data.tripInfo.licensePlate}`);
-
-            // 6. Tiền
-            setText('price', fmtMoney(data.ticketInfo.price));
-
-            // 7. Trạng thái (Xử lý chuỗi "Confirmed" thành màu sắc)
+            // Xử lý status dựa trên số (1, 0, -1)
             const badge = document.getElementById('status-badge');
-            const status = (data.ticketInfo.status || '').toUpperCase(); // Chuyển về chữ hoa để so sánh
+            const status = data.st;
 
-            if (status === 'PENDING') {
+            if (status === 0) {
                 badge.style.background = '#FFFBEB';
-                badge.style.color = 'var(--pending)';
+                badge.style.color = '#F59E0B';
                 badge.textContent = 'CHỜ THANH TOÁN';
-            } else if (status === 'CANCELLED' || status === 'FAILED') {
+            } else if (status === -1) {
                 badge.style.background = '#FEF2F2';
-                badge.style.color = 'var(--cancel)';
+                badge.style.color = '#EF4444';
                 badge.textContent = 'ĐÃ HỦY';
-            } else if (status === 'CONFIRMED' || status === 'PAID') {
-                badge.style.background = '#ECFDF5';
-                badge.style.color = 'var(--success)';
-                badge.textContent = 'ĐÃ THANH TOÁN';
             } else {
-                badge.textContent = status; // Trạng thái khác
+                badge.style.background = '#ECFDF5';
+                badge.style.color = '#10B981';
+                badge.textContent = 'ĐÃ THANH TOÁN';
             }
         }
 
