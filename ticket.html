@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vé Điện Tử - Fuba Bus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* GIỮ NGUYÊN CSS NHƯ CŨ - KHÔNG CẦN SỬA GÌ Ở ĐÂY */
+        :root {
+            --primary: #E74C3C;
+            --primary-dark: #c0392b;
+            --text-dark: #1F2937;
+            --text-gray: #6B7280;
+            --bg-page: #F3F4F6;
+            --white: #FFFFFF;
+            --success: #10B981;
+            --pending: #F59E0B;
+            --cancel: #EF4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .ticket-wrapper {
+            width: 100%;
+            max-width: 380px;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+        }
+
+        .ticket-card {
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .ticket-header {
+            background: var(--primary);
+            color: white;
+            padding: 24px 24px 30px;
+            text-align: center;
+            position: relative;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .trip-route {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        /* Chỉnh font nhỏ xíu cho vừa tên dài */
+        .ticket-rip {
+            height: 20px;
+            background: var(--white);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ticket-rip::before,
+        .ticket-rip::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            background: var(--bg-page);
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+        }
+
+        .ticket-rip::before {
+            left: -10px;
+        }
+
+        .ticket-rip::after {
+            right: -10px;
+        }
+
+        .ticket-rip-line {
+            width: 100%;
+            border-top: 2px dashed #E5E7EB;
+            margin: 0 15px;
+        }
+
+        .ticket-body {
+            padding: 10px 24px 24px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
+            background: #ECFDF5;
+            color: var(--success);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .label {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            word-break: break-word;
+        }
+
+        .value.highlight {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .value.large {
+            font-size: 16px;
+        }
+
+        .timeline-box {
+            background: #F9FAFB;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .timeline-row {
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-row:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-row:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 20px;
+            bottom: 0;
+            width: 2px;
+            background: #E5E7EB;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            background: white;
+            flex-shrink: 0;
+            margin-right: 12px;
+            z-index: 1;
+        }
+
+        .timeline-row:last-child .dot {
+            background: var(--primary);
+        }
+
+        .time-loc {
+            flex: 1;
+        }
+
+        .time {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--primary);
+        }
+
+        .loc-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .loc-addr {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        .ticket-footer {
+            border-top: 2px dashed #E5E7EB;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .total-price {
+            text-align: right;
+        }
+
+        .price-tag {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .barcode-strip {
+            height: 30px;
+            width: 100px;
+            background-image: linear-gradient(90deg, #333 0%, #333 4%, transparent 4%, transparent 6%, #333 6%, #333 12%, transparent 12%, transparent 14%, #333 14%, #333 20%, transparent 20%, transparent 24%, #333 24%, #333 30%, transparent 30%, transparent 32%, #333 32%, #333 100%);
+            opacity: 0.6;
+        }
+
+        #loading,
+        #error {
+            display: none;
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #error h3 {
+            color: var(--cancel);
+            margin-bottom: 8px;
+        }
+
+        .btn-print {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: var(--text-dark);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-print:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading" style="display: block;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🎫</div>
+        <p>Đang giải mã vé...</p>
+    </div>
+
+    <div id="error">
+        <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+        <h3>Lỗi hiển thị vé</h3>
+        <p id="error-msg">Không tìm thấy dữ liệu vé hợp lệ.</p>
+    </div>
+
+    <div class="ticket-wrapper" id="ticket-content" style="display: none;">
+        <div class="ticket-card">
+
+            <div class="ticket-header">
+                <div class="brand-name">FUBA BUS LINES</div>
+                <div class="trip-route">
+                    <span id="route-from">...</span>
+                    <span style="opacity: 0.6; font-weight: 400; font-size: 0.8em; margin: 0 5px;">➔</span>
+                    <span id="route-to">...</span>
+                </div>
+            </div>
+
+            <div class="ticket-rip">
+                <div class="ticket-rip-line"></div>
+            </div>
+
+            <div class="ticket-body">
+
+                <div id="status-badge" class="status-badge">...</div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Hành khách</span>
+                        <span class="value large" id="p-name">...</span>
+                    </div>
+                    <div class="info-item" style="align-items: flex-end;">
+                        <span class="label">Mã vé</span>
+                        <span class="value" id="t-code">...</span>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Ngày đi</span>
+                        <span class="value large" id="dep-date">...</span>
+                    </div>
+                    <div class="info-item" style="align-items: flex-end;">
+                        <span class="label">Số ghế</span>
+                        <span class="value highlight" id="seat-no">...</span>
+                    </div>
+                </div>
+
+                <div class="timeline-box">
+                    <div class="timeline-row">
+                        <div class="dot"></div>
+                        <div class="time-loc">
+                            <div class="time" id="pu-time">...</div>
+                            <div class="loc-name" id="pu-loc">...</div>
+                            <div class="loc-addr" id="pu-addr">...</div>
+                        </div>
+                    </div>
+                    <div class="timeline-row">
+                        <div class="dot"></div>
+                        <div class="time-loc">
+                            <div class="time" id="do-time">...</div>
+                            <div class="loc-name" id="do-loc">...</div>
+                            <div class="loc-addr" id="do-addr">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid" style="margin-bottom: 10px;">
+                    <div class="info-item">
+                        <span class="label">Xe / Biển số</span>
+                        <span class="value" id="veh-info">...</span>
+                    </div>
+                </div>
+
+                <div class="ticket-footer">
+                    <div class="barcode-strip"></div>
+                    <div class="total-price">
+                        <div class="label" style="text-align: right;">Tổng tiền</div>
+                        <div class="price-tag" id="price">...</div>
+                    </div>
+                </div>
+
+                <button class="btn-print" onclick="window.print()">In vé / Lưu ảnh</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('ticket-content');
+            const errorEl = document.getElementById('error');
+            const errorMsgEl = document.getElementById('error-msg');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+
+            setTimeout(() => {
+                if (!encodedData) {
+                    showError("Không tìm thấy mã dữ liệu trên URL.");
+                    return;
+                }
+
+                try {
+                    // GIẢI MÃ
+                    const jsonString = decodeURIComponent(escape(window.atob(encodedData)));
+                    const data = JSON.parse(jsonString);
+
+                    // GỌI HÀM RENDER VỚI DATA MỚI
+                    renderTicketData(data);
+
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+
+                } catch (e) {
+                    console.error(e);
+                    showError("Dữ liệu vé bị lỗi hoặc sai định dạng.");
+                }
+            }, 800);
+
+            function showError(msg) {
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                if (msg) errorMsgEl.textContent = msg;
+            }
+        });
+
+        // HÀM NÀY LÀ QUAN TRỌNG NHẤT - MAPPING DỮ LIỆU
+        function renderTicketData(data) {
+            const fmtMoney = (n) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+
+            // Hàm format ngày từ YYYY-MM-DD sang DD/MM/YYYY
+            const fmtDate = (dateStr) => {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
+            };
+
+            // 1. Tách Tuyến đường (routeName: "A -> B")
+            // Backend trả về: "Bến xe Miền Đông → Bến xe Liên Tỉnh Đà Lạt"
+            let fromLoc = data.pickupInfo.locationName; // Mặc định lấy điểm đón nếu ko tách được
+            let toLoc = data.dropoffInfo.locationName;
+
+            if (data.tripInfo.routeName && data.tripInfo.routeName.includes('→')) {
+                const parts = data.tripInfo.routeName.split('→');
+                fromLoc = parts[0].trim();
+                toLoc = parts[1].trim();
+            }
+
+            setText('route-from', fromLoc);
+            setText('route-to', toLoc);
+
+            // 2. Thông tin chính (Lấy từ passengerInfo, ticketInfo, tripInfo)
+            setText('p-name', data.passengerInfo.fullName);
+            setText('t-code', data.ticketInfo.ticketCode);
+            setText('dep-date', fmtDate(data.tripInfo.departureDate));
+            setText('seat-no', data.seatInfo.seatNumber);
+
+            // 3. Pickup (Điểm đón)
+            setText('pu-time', data.pickupInfo.time);
+            setText('pu-loc', data.pickupInfo.locationName);
+            setText('pu-addr', data.pickupInfo.address || '');
+
+            // 4. Dropoff (Điểm trả)
+            setText('do-time', data.dropoffInfo.time);
+            setText('do-loc', data.dropoffInfo.locationName);
+            setText('do-addr', data.dropoffInfo.address || '');
+
+            // 5. Xe (Cắt bớt chữ "Phòng/Seats" nếu quá dài nếu muốn)
+            setText('veh-info', `${data.tripInfo.vehicleType} • ${data.tripInfo.licensePlate}`);
+
+            // 6. Tiền
+            setText('price', fmtMoney(data.ticketInfo.price));
+
+            // 7. Trạng thái (Xử lý chuỗi "Confirmed" thành màu sắc)
+            const badge = document.getElementById('status-badge');
+            const status = (data.ticketInfo.status || '').toUpperCase(); // Chuyển về chữ hoa để so sánh
+
+            if (status === 'PENDING') {
+                badge.style.background = '#FFFBEB';
+                badge.style.color = 'var(--pending)';
+                badge.textContent = 'CHỜ THANH TOÁN';
+            } else if (status === 'CANCELLED' || status === 'FAILED') {
+                badge.style.background = '#FEF2F2';
+                badge.style.color = 'var(--cancel)';
+                badge.textContent = 'ĐÃ HỦY';
+            } else if (status === 'CONFIRMED' || status === 'PAID') {
+                badge.style.background = '#ECFDF5';
+                badge.style.color = 'var(--success)';
+                badge.textContent = 'ĐÃ THANH TOÁN';
+            } else {
+                badge.textContent = status; // Trạng thái khác
+            }
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+    </script>
+</body>
+
+</html>
